@@ -40,3 +40,19 @@ class FunctionTrie:
             node = node.children[token]
 
         return list(node.children.keys())
+
+    def is_complete(
+        self,
+        prefix: list[int],
+    ) -> bool:
+
+        node = self.root
+
+        for token in prefix:
+
+            if token not in node.children:
+                return False
+
+            node = node.children[token]
+
+        return node.is_end
