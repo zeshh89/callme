@@ -3,6 +3,7 @@ from src.io import load_function_definitions
 from src.function_trie_builder import FunctionTrieBuilder
 from src.masking import mask_logits
 from src.prompt_builder import build_parameter_prompt
+from src.json_decoder import generate_json
 
 
 def greedy_decode(
@@ -125,6 +126,11 @@ def main() -> None:
         parameter_ids
     )
 
+    parameters = generate_json(
+        llm,
+        parameter_prompt,
+    )
+
     next_token = int(
         logits.argmax().item()
     )
@@ -146,26 +152,8 @@ def main() -> None:
         )
     )
 
-    generated = []
-
-    for _ in range(20):
-
-        current_ids = (
-            parameter_ids +
-            generated
-        )
-
-        logits = llm.logits(current_ids)
-
-        next_token = int(
-            logits.argmax().item()
-        )
-
-        generated.append(next_token)
-
-    print(
-        llm.decode(generated)
-    )
+    print("\nPARAMETERS:")
+    print(parameters)
 
 
 if __name__ == "__main__":
