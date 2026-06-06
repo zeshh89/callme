@@ -73,12 +73,10 @@ class Small_LLM_Model:
         for p in self._model.parameters():
             p.requires_grad = False
 
-
     def encode(self, text: str) -> torch.Tensor:
         """Tokenise *text* and return a 2-D ``input_ids`` tensor on the target device."""
         ids = self._tokenizer.encode(text, add_special_tokens=False)
         return torch.tensor([ids], device=self._device, dtype=torch.long)
-
 
     def decode(self, ids: torch.Tensor | list[int]) -> str:
         """Inverse of :py:meth:`encode`. Removes special tokens."""
@@ -86,8 +84,7 @@ class Small_LLM_Model:
             ids = ids.tolist()
         return self._tokenizer.decode(ids, skip_special_tokens=True)
 
-
-    def get_logits_from_input_ids(self, input_ids: list[int]) -> list[float]:
+    def get_logits_from_input_ids(self, input_ids: list[int]) -> torch.Tensor:
         """
         Given a list of input token ids, return the raw logits (no softmax) for the next token.
         """
@@ -95,9 +92,8 @@ class Small_LLM_Model:
         with torch.no_grad():
             out = self._model(input_ids=input_tensor)
         # Get logits for the last token in the sequence for the batch (batch size 1)
-        logits = out.logits[0, -1].tolist()
-        return [float(x) for x in logits]
-
+        logits = out.logits[0, -1]
+        return logits
 
     def get_path_to_vocab_file(self) -> str:
         vocab_file_name = self._tokenizer.vocab_files_names.get('vocab_file', "vocab.json")
@@ -107,7 +103,6 @@ class Small_LLM_Model:
         )
         return vocab_path
 
-
     def get_path_to_merges_file(self) -> str:
         merges_file_name = self._tokenizer.vocab_files_names.get('merges_file', "merges.txt")
         merges_path = hf_hub_download(
@@ -115,7 +110,6 @@ class Small_LLM_Model:
             filename=merges_file_name
         )
         return merges_path
-
 
     def get_path_to_tokenizer_file(self) -> str:
         tokenizer_file_name = self._tokenizer.vocab_files_names.get('tokenizer_file', "tokenizer.json")

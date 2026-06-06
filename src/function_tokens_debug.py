@@ -1,7 +1,4 @@
-from src.io import (
-    load_function_definitions,
-    load_prompts
-)
+from src.io import load_function_definitions
 from src.registry import FunctionRegistry
 from src.llm import LLM
 
@@ -14,16 +11,21 @@ def main() -> None:
 
     registry = FunctionRegistry(functions)
 
-    print("AVAILABLE FUNCTIONS:")
-
-    for name in registry.names():
-        print(name)
-    
-    print("\nLoading model...")
-
     llm = LLM()
 
-    print("Model loaded.")
+    for name in registry.names():
+
+        ids = llm.encode(name)
+
+        print(f"\n{name}")
+        print(ids)
+
+        for token_id in ids:
+            print(
+                token_id,
+                "->",
+                repr(llm.decode([token_id]))
+            )
 
 
 if __name__ == "__main__":
