@@ -20,6 +20,9 @@ class FunctionRegistry:
 
         return self._functions.get(name)
 
+    def functions(self):
+        return list(self._functions.values())
+
     def names(
         self,
     ) -> list[str]:
