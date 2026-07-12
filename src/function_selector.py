@@ -1,4 +1,4 @@
-from src.pipeline import greedy_decode
+from src.decoding import greedy_decode
 from src.function_resolver import find_function_by_name
 
 

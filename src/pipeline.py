@@ -1,47 +1,27 @@
-from src.masking import mask_logits
 from src.prompt_builder import build_parameter_prompt
 from src.json_decoder import generate_json
 from src.models import FunctionCallResult
-from src.registry import FunctionRegistry
+from src.decoding import greedy_decode
 from src.function_prompt_builder import (
     build_function_prompt,
 )
+from src.value_decoder import generate_number, generate_boolean, generate_string
+from src.prompt_builder import build_value_prompt
 
 
-def greedy_decode(prompt, llm, trie):
-
-    prompt_ids = llm.encode(prompt)
-
-    generated = []
-
-    for _ in range(20):
-
-        logits = llm.logits(
-            prompt_ids + generated
+def generate_parameters(llm, user_prompt, function) -> dict:
+    parameters = {}
+    for name, param in function.parameters.items():
+        value_prompt = build_value_prompt(
+            user_prompt, function, name, param, parameters
         )
-
-        allowed = trie.get_allowed_tokens(
-            generated
-        )
-
-        if not allowed:
-            break
-
-        masked = mask_logits(
-            logits,
-            allowed,
-        )
-
-        token = int(
-            masked.argmax().item()
-        )
-
-        generated.append(token)
-
-        if trie.is_complete(generated):
-            break
-
-    return generated
+        if param.type in ("number", "integer"):
+            parameters[name] = generate_number(llm, value_prompt, as_integer=(param.type == "integer"))
+        elif param.type == "boolean":
+            parameters[name] = generate_boolean(llm, value_prompt)
+        else:
+            parameters[name] = generate_string(llm, value_prompt)
+    return parameters
 
 
 def run_pipeline(
@@ -83,9 +63,10 @@ def run_pipeline(
         function,
     )
 
-    parameters = generate_json(
+    parameters = generate_parameters(
         llm,
-        parameter_prompt,
+        prompt,
+        function
     )
 
     return FunctionCallResult(

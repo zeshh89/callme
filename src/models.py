@@ -1,17 +1,14 @@
 from pydantic import BaseModel
 from typing import Dict, Literal
 
-ParamType = Literal["string", "number", "boolean"]
-ParameterValue = str | float | bool
-
+ParamType = Literal["string", "number", "integer", "boolean"]
+ParameterValue = str | float | int | bool
 
 class ParameterDefinition(BaseModel):
     type: ParamType
 
-
 class ReturnDefinition(BaseModel):
     type: ParamType
-
 
 class FunctionDefinition(BaseModel):
     name: str
@@ -19,10 +16,8 @@ class FunctionDefinition(BaseModel):
     parameters: Dict[str, ParameterDefinition]
     returns: ReturnDefinition
 
-
 class PromptInput(BaseModel):
     prompt: str
-
 
 class FunctionCallResult(BaseModel):
     prompt: str
