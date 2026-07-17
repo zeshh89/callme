@@ -14,7 +14,10 @@ from src.models import FunctionCallResult
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Translate natural language prompts into structured function calls.",
+        description=(
+            "Translate natural language prompts"
+            "into structured function calls."
+        )
     )
     parser.add_argument(
         "--functions_definition",

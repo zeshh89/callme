@@ -1,10 +1,17 @@
 from src.function_trie import FunctionTrie
 from src.decoding import greedy_decode
+from src.llm import LLM
 
 NUMBER_CHARS = set("0123456789.-")
 
 
-def generate_number(llm, prompt: str, as_integer: bool = False, max_tokens: int = 10, max_lookahead: int = 5) -> float | int:
+def generate_number(
+        llm: LLM,
+        prompt: str,
+        as_integer: bool = False,
+        max_tokens: int = 10,
+        max_lookahead: int = 5
+) -> float | int:
     ids = llm.encode(prompt)
     digits = ""
     started = False
@@ -45,7 +52,7 @@ def generate_number(llm, prompt: str, as_integer: bool = False, max_tokens: int 
     return int(value) if as_integer else value
 
 
-def generate_boolean(llm, prompt: str) -> bool:
+def generate_boolean(llm: LLM, prompt: str) -> bool:
     trie = FunctionTrie()
     trie.insert(llm.encode("true"))
     trie.insert(llm.encode("false"))
@@ -53,7 +60,7 @@ def generate_boolean(llm, prompt: str) -> bool:
     return llm.decode(tokens).strip().lower() == "true"
 
 
-def generate_string(llm, prompt: str, max_tokens: int = 30) -> str:
+def generate_string(llm: LLM, prompt: str, max_tokens: int = 30) -> str:
     ids = llm.encode(prompt)
     text = ""
     started = False

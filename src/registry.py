@@ -20,7 +20,7 @@ class FunctionRegistry:
 
         return self._functions.get(name)
 
-    def functions(self):
+    def functions(self) -> list[FunctionDefinition]:
         return list(self._functions.values())
 
     def names(
