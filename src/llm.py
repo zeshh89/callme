@@ -1,4 +1,5 @@
 from llm_sdk import Small_LLM_Model
+import torch
 
 
 class LLM:
@@ -13,5 +14,5 @@ class LLM:
     def decode(self, ids: list[int]) -> str:
         return self.model.decode(ids)
 
-    def logits(self, ids: list[int]) -> list[float]:
+    def logits(self, ids: list[int]) -> torch.Tensor:
         return self.model.get_logits_from_input_ids(ids)

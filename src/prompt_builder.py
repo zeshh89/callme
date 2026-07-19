@@ -1,6 +1,9 @@
-from src.models import FunctionDefinition, ParameterDefinition
-import json
-
+from src.models import (
+    FunctionDefinition,
+    ParameterDefinition,
+    ParameterValue
+)
+from typing import Mapping
 
 REGEX_CATEGORY_HINTS = """
 Some regex parameters describe a CATEGORY of characters instead
@@ -55,7 +58,7 @@ def build_value_prompt(
         function: FunctionDefinition,
         param_name: str,
         param: ParameterDefinition,
-        already_filled: dict[str, object]
+        already_filled: Mapping[str, ParameterValue]
 ) -> str:
     filled = "\n".join(
         f"- {k}: {v}" for k, v in already_filled.items()
@@ -85,51 +88,3 @@ Already extracted:
 Now output ONLY the raw value (no quotes, no explanation)
 for parameter "{param_name}" (type: {param.type}).
 Value:"""
-
-
-def build_parameter_prompt(
-    user_prompt: str,
-    function: FunctionDefinition,
-) -> str:
-    parameters = "\n".join(
-        f"- {name}: {parameter.type}"
-        for name, parameter in function.parameters.items()
-    )
-
-    example = {}
-    for name, parameter in function.parameters.items():
-        if parameter.type == "number":
-            example[name] = 1
-        elif parameter.type == "boolean":
-            example[name] = True
-        else:
-            example[name] = "example"
-
-    example_json = json.dumps(example, indent=2)
-
-    return f"""You are a PARAMETER EXTRACTOR, not a calculator.
-You do NOT execute, compute, evaluate, reverse, sort, sum,
-or transform anything.
-Your only job is to copy the raw values already present in the user's request
-into a JSON object.
-
-User request: {user_prompt}
-
-Target function: {function.name}
-Description: {function.description}
-Parameters (name: type):
-{parameters}
-
-CRITICAL RULES:
-- Copy values EXACTLY as written in the user request (same characters,
-same order, same case).
-- Do NOT compute the result of the function.
-- Do NOT reverse strings, do NOT add numbers, do NOT apply any logic.
-- Use exactly the parameter names listed above, no extra keys.
-- Output ONLY the JSON object, nothing else.
-
-Example (structure only, not real values):
-{example_json}
-
-JSON:
-"""

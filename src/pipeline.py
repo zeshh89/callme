@@ -1,4 +1,11 @@
-from src.models import FunctionCallResult
+from src.models import (
+    FunctionCallResult,
+    FunctionDefinition,
+    ParameterValue,
+    PromptInput
+)
+from src.registry import FunctionRegistry
+from src.function_trie import FunctionTrie
 from src.decoding import greedy_decode
 from src.function_prompt_builder import (
     build_function_prompt,
@@ -9,10 +16,15 @@ from src.value_decoder import (
     generate_string
 )
 from src.prompt_builder import build_value_prompt
+from src.llm import LLM
 
 
-def generate_parameters(llm, user_prompt, function) -> dict:
-    parameters = {}
+def generate_parameters(
+    llm: LLM,
+    user_prompt: str,
+    function: FunctionDefinition
+) -> dict:
+    parameters: dict[str, ParameterValue] = {}
     for name, param in function.parameters.items():
         value_prompt = build_value_prompt(
             user_prompt, function, name, param, parameters
@@ -31,11 +43,11 @@ def generate_parameters(llm, user_prompt, function) -> dict:
 
 
 def run_pipeline(
-    prompt_obj,
-    llm,
-    trie,
-    registry,
-):
+    prompt_obj: PromptInput,
+    llm: LLM,
+    trie: FunctionTrie,
+    registry: FunctionRegistry,
+) -> FunctionCallResult:
     prompt = prompt_obj.prompt
 
     # Seleccionar función
