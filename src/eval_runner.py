@@ -38,36 +38,87 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
-    args = parse_args()
+    try:
+        args = parse_args()
 
-    print("Loading model...")
-    llm = LLM()
-    print("Model loaded")
+        print("Loading input files...")
 
-    functions = load_function_definitions(args.functions_definition)
-    registry = FunctionRegistry(functions)
-    prompts = load_prompts(args.input)
-    trie = FunctionTrieBuilder(llm).build(functions)
-
-    results: list[FunctionCallResult] = []
-    for index, prompt_obj in enumerate(prompts, start=1):
-        print(f"\n--- Processing {index}/{len(prompts)} ---")
         try:
-            result = run_pipeline(prompt_obj, llm, trie, registry)
-            results.append(result)
-            print("OK:", result.name, "->", result.parameters)
-        except Exception as exc:
-            print("ERROR:", exc)
-            results.append(
-                FunctionCallResult(
-                    prompt=prompt_obj.prompt,
-                    name="ERROR",
-                    parameters={},
-                )
+            functions = load_function_definitions(
+                args.functions_definition,
             )
 
-    save_results(args.output, results)
-    print("\nDONE. Results saved.")
+            prompts = load_prompts(
+                args.input,
+            )
+
+        except (ValueError, FileNotFoundError) as exc:
+            print(f"\nError: {exc}")
+            return
+
+        registry = FunctionRegistry(functions)
+
+        print("Input files validated.")
+        print("Loading model...")
+
+        llm = LLM()
+
+        print("Model loaded")
+
+        trie = FunctionTrieBuilder(
+            llm
+        ).build(functions)
+
+        results: list[FunctionCallResult] = []
+
+        for index, prompt_obj in enumerate(
+            prompts,
+            start=1,
+        ):
+
+            print(
+                f"\n--- Processing {index}/{len(prompts)} ---"
+            )
+
+            try:
+
+                result = run_pipeline(
+                    prompt_obj,
+                    llm,
+                    trie,
+                    registry,
+                )
+
+                results.append(result)
+
+                print(
+                    "OK:",
+                    result.name,
+                    "->",
+                    result.parameters,
+                )
+
+            except Exception as exc:
+
+                print("ERROR:", exc)
+
+                results.append(
+                    FunctionCallResult(
+                        prompt=prompt_obj.prompt,
+                        name="ERROR",
+                        parameters={},
+                    )
+                )
+
+        save_results(
+            args.output,
+            results,
+        )
+
+        print("\nDONE. Results saved.")
+    except KeyboardInterrupt:
+        print("\nInterrupted by user.")
+        return
 
 
 if __name__ == "__main__":

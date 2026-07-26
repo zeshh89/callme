@@ -29,20 +29,30 @@ def load_function_definitions(
         with open(path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
-        return [
-            FunctionDefinition(**item)
-            for item in data
-        ]
+        functions = []
+
+        for index, item in enumerate(data):
+            try:
+                functions.append(
+                    FunctionDefinition(**item)
+                )
+            except ValidationError:
+                raise ValueError(
+                    f"Invalid function definition at entry {index + 1}.\n\n"
+                    "Please check the format of this function."
+                ) from None
+
+        return functions
 
     except json.JSONDecodeError as exc:
         raise ValueError(
             f"Invalid JSON in function definitions: {exc}"
         ) from exc
 
-    except ValidationError as exc:
+    except ValidationError:
         raise ValueError(
-            f"Invalid function definition schema: {exc}"
-        ) from exc
+            "Invalid function definition file."
+        ) from None
 
 
 def load_prompts(
@@ -63,20 +73,33 @@ def load_prompts(
         with open(path, "r", encoding="utf-8") as file:
             data = json.load(file)
 
-        return [
-            PromptInput(**item)
-            for item in data
-        ]
+        prompts = []
+
+        for index, item in enumerate(data):
+            try:
+                prompts.append(
+                    PromptInput(**item)
+                )
+            except ValidationError:
+                raise ValueError(
+                    f"Invalid prompt at entry {index + 1}.\n\n"
+                    "Expected format:\n"
+                    '{\n'
+                    '    "prompt": "Your prompt here"\n'
+                    '}'
+                ) from None
+
+        return prompts
 
     except json.JSONDecodeError as exc:
         raise ValueError(
             f"Invalid JSON in prompts file: {exc}"
         ) from exc
 
-    except ValidationError as exc:
+    except ValidationError:
         raise ValueError(
-            f"Invalid prompt schema: {exc}"
-        ) from exc
+            "Invalid prompt file."
+        ) from None
 
 
 def save_results(

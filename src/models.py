@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Dict, Literal
 
 ParamType = Literal["string", "number", "integer", "boolean"]
@@ -22,6 +22,20 @@ class FunctionDefinition(BaseModel):
 
 class PromptInput(BaseModel):
     prompt: str
+
+    @field_validator("prompt")
+    @classmethod
+    def validate_prompt(
+        cls,
+        value: str,
+    ) -> str:
+
+        if not value.strip():
+            raise ValueError(
+                "Prompt cannot be empty."
+            )
+
+        return value
 
 
 class FunctionCallResult(BaseModel):
